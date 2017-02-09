@@ -16,6 +16,7 @@
  * You should have received a copy of the GNU General Public License along with
  * this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#include <linux/firmware.h>
 #include <linux/mutex.h>
 #include <linux/platform_device.h>
 
@@ -86,10 +87,14 @@ enum fpga_mgr_states {
  * @config_complete_timeout_us: maximum time for FPGA to switch to operating
  *	   status in the write_complete op.
  * @firmware_name: name of FPGA image firmware file
+ * @fw: FPGA image firmware
  * @sgt: scatter/gather table containing FPGA image
  * @buf: contiguous buffer containing FPGA image
  * @count: size of buf
+ * @fdt_blob: fdt from FPGA image header
+ * @header: header
  * @overlay: Device Tree overlay
+ * @ov_id: id of applied overlay
  */
 struct fpga_image_info {
 	struct device *dev;
@@ -98,11 +103,15 @@ struct fpga_image_info {
 	u32 disable_timeout_us;
 	u32 config_complete_timeout_us;
 	char *firmware_name;
+	const struct firmware *fw;
 	struct sg_table *sgt;
 	const char *buf;
 	size_t count;
+	char *fdt_blob;
+	char *header;
 #ifdef CONFIG_OF
 	struct device_node *overlay;
+	int ov_id;
 #endif
 };
 

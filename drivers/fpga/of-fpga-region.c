@@ -375,6 +375,13 @@ static int of_fpga_region_notify(struct notifier_block *nb,
 	if (!region)
 		return NOTIFY_OK;
 
+	/*
+	 * If notification is because bitstream had a fdt in the header,
+	 * silently ignore notification.
+	 */
+	if (region->info && region->info->fdt_blob)
+		return NOTIFY_OK;
+
 	ret = 0;
 	switch (action) {
 	case OF_OVERLAY_PRE_APPLY:

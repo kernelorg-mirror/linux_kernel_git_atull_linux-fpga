@@ -33,6 +33,7 @@ struct fpga_region *fpga_region_class_find(
 
 int fpga_region_program_fpga(struct fpga_region *region);
 void fpga_region_free(struct fpga_region *region);
+int fpga_region_fdt_image_apply(struct fpga_region *region);
 
 int fpga_region_register(struct device *dev, struct fpga_region *region);
 int fpga_region_unregister(struct fpga_region *region);
