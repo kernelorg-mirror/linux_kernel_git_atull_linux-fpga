@@ -1,0 +1,7 @@
+What:		/sys/class/fpga_region/<fpga>/firmware_name
+Date:		July 2017
+KernelVersion:	4.15
+Contact:	Alan Tull <atull@kernel.org>
+Description:	Write the name of FPGA image file on the firmware path to
+		program the FPGA region.  Write nothing to free up the
+		FPGA region for reprogramming.
