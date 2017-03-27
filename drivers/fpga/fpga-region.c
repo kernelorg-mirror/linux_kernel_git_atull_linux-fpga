@@ -162,6 +162,26 @@ err_put_region:
 }
 EXPORT_SYMBOL_GPL(fpga_region_program_fpga);
 
+/**
+ * fpga_region_free
+ * Undo some of what fpga_region_program_fpga() did to free up
+ * region to be reprogrammed.
+ * @region: FPGA region
+ */
+void fpga_region_free(struct fpga_region *region)
+{
+	if (!region->info)
+		return;
+
+	fpga_bridges_disable(&region->bridge_list);
+	if (region->get_bridges)
+		fpga_bridges_put(&region->bridge_list);
+
+	fpga_image_info_free(region->info);
+	region->info = NULL;
+}
+EXPORT_SYMBOL_GPL(fpga_region_free);
+
 int fpga_region_register(struct device *dev, struct fpga_region *region)
 {
 	int id, ret = 0;

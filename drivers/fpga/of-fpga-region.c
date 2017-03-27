@@ -333,10 +333,7 @@ static int of_fpga_region_notify_pre_apply(struct fpga_region *region,
 static void of_fpga_region_notify_post_remove(struct fpga_region *region,
 					      struct of_overlay_notify_data *nd)
 {
-	fpga_bridges_disable(&region->bridge_list);
-	fpga_bridges_put(&region->bridge_list);
-	fpga_image_info_free(region->info);
-	region->info = NULL;
+	fpga_region_free(region);
 }
 
 /**
