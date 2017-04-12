@@ -88,6 +88,7 @@ enum fpga_mgr_states {
  * @sgt: scatter/gather table containing FPGA image
  * @buf: contiguous buffer containing FPGA image
  * @count: size of buf
+ * @overlay: Device Tree overlay
  */
 struct fpga_image_info {
 	u32 flags;
@@ -98,6 +99,9 @@ struct fpga_image_info {
 	struct sg_table *sgt;
 	const char *buf;
 	size_t count;
+#ifdef CONFIG_OF
+	struct device_node *overlay;
+#endif
 };
 
 /**
