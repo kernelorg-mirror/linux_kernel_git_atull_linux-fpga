@@ -40,20 +40,26 @@ struct fpga_image_info *fpga_image_info_alloc(struct device *dev)
 	if (!info)
 		return ERR_PTR(-ENOMEM);
 
+	get_device(dev);
+	info->dev = dev;
+
 	return info;
 }
 EXPORT_SYMBOL_GPL(fpga_image_info_alloc);
 
-void fpga_image_info_free(struct device *dev,
-			  struct fpga_image_info *info)
+void fpga_image_info_free(struct fpga_image_info *info)
 {
+	struct device *dev;
+
 	if (!info)
 		return;
 
 	if (info->firmware_name)
-		devm_kfree(dev, info->firmware_name);
+		devm_kfree(info->dev, info->firmware_name);
 
-	devm_kfree(dev, info);
+	dev = info->dev;
+	devm_kfree(info->dev, info);
+	put_device(dev);
 }
 EXPORT_SYMBOL_GPL(fpga_image_info_free);
 

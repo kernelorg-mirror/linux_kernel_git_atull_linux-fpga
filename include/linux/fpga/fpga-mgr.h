@@ -79,6 +79,7 @@ enum fpga_mgr_states {
 
 /**
  * struct fpga_image_info - information specific to a FPGA image
+ * @dev: device that owns this info
  * @flags: boolean flags as defined above
  * @enable_timeout_us: maximum time to enable traffic through bridge (uSec)
  * @disable_timeout_us: maximum time to disable traffic through bridge (uSec)
@@ -91,6 +92,7 @@ enum fpga_mgr_states {
  * @overlay: Device Tree overlay
  */
 struct fpga_image_info {
+	struct device *dev;
 	u32 flags;
 	u32 enable_timeout_us;
 	u32 disable_timeout_us;
@@ -153,7 +155,7 @@ struct fpga_manager {
 
 struct fpga_image_info *fpga_image_info_alloc(struct device *dev);
 
-void fpga_image_info_free(struct device *dev, struct fpga_image_info *info);
+void fpga_image_info_free(struct fpga_image_info *info);
 
 int fpga_mgr_load(struct fpga_manager *mgr, struct fpga_image_info *info);
 

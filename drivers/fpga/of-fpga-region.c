@@ -273,7 +273,7 @@ static struct fpga_image_info *of_fpga_region_parse_ov(
 
 	return info;
 ret_no_info:
-	fpga_image_info_free(dev, info);
+	fpga_image_info_free(info);
 	return ERR_PTR(ret);
 }
 
@@ -314,7 +314,7 @@ static int of_fpga_region_notify_pre_apply(struct fpga_region *region,
 	ret = fpga_region_program_fpga(region);
 	if (ret) {
 		/* error; reject overlay */
-		fpga_image_info_free(dev, info);
+		fpga_image_info_free(info);
 		region->info = NULL;
 	}
 
@@ -335,7 +335,7 @@ static void of_fpga_region_notify_post_remove(struct fpga_region *region,
 {
 	fpga_bridges_disable(&region->bridge_list);
 	fpga_bridges_put(&region->bridge_list);
-	fpga_image_info_free(&region->dev, region->info);
+	fpga_image_info_free(region->info);
 	region->info = NULL;
 }
 
