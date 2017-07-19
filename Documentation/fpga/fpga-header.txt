@@ -1,0 +1,103 @@
+Open source FPGA image headers
+
+Alan Tull 2017
+
+CONTENTS
+- Introduction
+- Format
+- Example
+- Using mkimage
+
+Introduction
+============
+
+Open source FPGA image headers have been added to allow FPGA image specific
+information to be included with the image.  The header format is a simplified
+form of u-boot FIT images and can be expanded as real use cases are raised.
+As all the FPGA kernel frameworks are intended to be vendor agnostic, so also
+is the header.  As libfdt's licensing is permissive, this header is also
+intended to be useful for OS's other than Linux such that the FPGA image need
+not be rebuilt for use under another OS.
+
+Format
+======
+
+The format of the header is a reduced FIT-like header, so it can be built
+using mkimage.  The header is a FDT followed by two optional binary data
+sections: a Device Tree overlay and a raw FPGA image.  When the image is
+applied to a FPGA region, first the FPGA is programmed (if the raw image is
+present) and then the DT overlay, if present, is applied.  If the DT overlay
+is eliminated, this header format may be used on systems running without
+Device Tree.
+
+Example
+=======
+
+/dts-v1/;
+
+/ {
+	description = "Program FPGA image and apply DT overlay";
+	#address-cells = <1>;
+
+	images {
+		fdt@1 {
+			description = "Flattened Device Tree blob";
+			type = "flat_dt";
+			data = /incbin/("/some/path/persona0.dtb");
+		};
+		fpga@1 {
+			description = "FPGA image";
+			type = "fpga";
+			data = /incbin/("/some/path/persona0.rbf");
+			partial-fpga-config;
+			region-unfreeze-timeout-us = <4>;
+			region-freeze-timeout-us = <4>;
+			config-complete-timeout-us = <100>;
+		};
+	};
+};
+
+This format is compatible with FIT, but leaves out a few things that were not
+needed.  The compression property is left out (assuming none).  The
+'configurations' section is left out since there is only one possible
+configuration presented here.  If we see an actual use case for
+configurations in the future, we could expand to support it seamlessly.
+
+Any FPGA image info must be included in the FPGA image section.  FPGA image
+info properties are defined in the fpga-region.txt Device Tree binding
+document at ../devicetree/bindings/fpga/fpga-region.txt.
+
+The FPGA image section has to come last.
+
+Using mkimage
+=============
+
+If the above example is named persona0.its, it can be compiled by using
+mkimage as follows.  The output file is persona0.fit.
+
+ mkimage -f persona0.its persona0.fit
+
+Applying the image
+==================
+
+A sysfs attribute 'firmware_name' is added for each FPGA region.
+
+To apply the image:
+
+  echo persona.fit > /sys/class/fpga_region/region0/firmware_name
+
+To free up the region for reprogramming:
+
+  echo > /sys/class/fpga_region/region0/firmware_name
+
+FPGA Region API Function
+========================
+
+An API for FPGA region has been added:
+
+  int fpga_region_fdt_image_apply(struct fpga_region *region)
+
+This function will parse the header of a FPGA image and do the programming
+and apply the DT overlay.  The FPGA image is presented as a scatter gather
+table, a contiguous buffer, or name of a firmware file in the region's FPGA
+image info (region->info).
