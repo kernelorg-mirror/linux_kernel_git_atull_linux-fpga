@@ -44,3 +44,59 @@ Description:	Read-only. It returns socket_id to indicate which socket
 		this FPGA belongs to, only valid for integrated solution.
 		User only needs this information, in case standard numa node
 		can't provide correct information.
+
+What:		/sys/bus/platform/devices/dfl-fme.0/thermal_mgmt/temperature
+Date:		March 2019
+KernelVersion:  5.2
+Contact:	Wu Hao <hao.wu@intel.com>
+Description:	Read-only. It returns temperature (in Celsius) of this FPGA
+		device.
+
+What:		/sys/bus/platform/devices/dfl-fme.0/thermal_mgmt/threshold1
+Date:		March 2019
+KernelVersion:  5.2
+Contact:	Wu Hao <hao.wu@intel.com>
+Description:	Read-only. Read this file to get the temperature threshold1
+		(in Celsius).
+
+What:		/sys/bus/platform/devices/dfl-fme.0/thermal_mgmt/threshold2
+Date:		March 2019
+KernelVersion:  5.2
+Contact:	Wu Hao <hao.wu@intel.com>
+Description:	Read-only. Read this file to get the temperature threshold2
+		(in Celsius).
+
+What:		/sys/bus/platform/devices/dfl-fme.0/thermal_mgmt/trip_threshold
+Date:		March 2019
+KernelVersion:  5.2
+Contact:	Wu Hao <hao.wu@intel.com>
+Description:	Read-only. It returns trip threshold (in Celsius), once FPGA
+		temperature reaches trip threshold, it triggers a fatal event
+		to board management controller (BMC) to shutdown FPGA.
+
+What:		/sys/bus/platform/devices/dfl-fme.0/thermal_mgmt/threshold1_status
+Date:		March 2019
+KernelVersion:  5.2
+Contact:	Wu Hao <hao.wu@intel.com>
+Description:	Read-only. It returns 1 if temperature reaches threshold1,
+		otherwise 0. Once temperature reaches threshold1, hardware
+		will automatically enter throttling state (AP1 - 50%
+		or AP2 - 90% throttling, see 'threshold1_policy').
+
+What:		/sys/bus/platform/devices/dfl-fme.0/thermal_mgmt/threshold2_status
+Date:		March 2019
+KernelVersion:  5.2
+Contact:	Wu Hao <hao.wu@intel.com>
+Description:	Read-only. It returns 1 if temperature reaches threshold2,
+		otherwise 0. Once temperature reaches threshold2, hardware
+		will automatically enter the deepest throttling state (AP6
+		- 100% throttling).
+
+What:		/sys/bus/platform/devices/dfl-fme.0/thermal_mgmt/threshold1_policy
+Date:		March 2019
+KernelVersion:  5.2
+Contact:	Wu Hao <hao.wu@intel.com>
+Description:	Read-only. Read this file to get the policy of temperature
+		threshold1. It only supports two value (policy):
+		    0 - AP2 state (90% throttling)
+		    1 - AP1 state (50% throttling)
