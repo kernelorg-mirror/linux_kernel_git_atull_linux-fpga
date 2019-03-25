@@ -686,6 +686,10 @@ static struct dfl_feature_driver fme_feature_drvs[] = {
 		.ops = &fme_power_mgmt_ops,
 	},
 	{
+		.id_table = fme_global_err_id_table,
+		.ops = &fme_global_err_ops,
+	},
+	{
 		.ops = NULL,
 	},
 };
