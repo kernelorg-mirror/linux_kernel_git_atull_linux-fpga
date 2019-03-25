@@ -22,7 +22,10 @@
 #include <linux/io-64-nonatomic-lo-hi.h>
 #include <linux/fpga/fpga-mgr.h>
 
+#include "dfl.h"
 #include "dfl-fme-pr.h"
+
+#define DRV_VERSION	"0.8"
 
 /* FME Partial Reconfiguration Sub Feature Register Set */
 #define FME_PR_DFH		0x0
@@ -30,6 +33,7 @@
 #define FME_PR_STS		0x10
 #define FME_PR_DATA		0x18
 #define FME_PR_ERR		0x20
+#define FME_PR_512_DATA		0x40 /* Data Register for 512bit datawidth PR */
 #define FME_PR_INTFC_ID_L	0xA8
 #define FME_PR_INTFC_ID_H	0xB0
 
@@ -67,8 +71,31 @@
 #define PR_WAIT_TIMEOUT   8000000
 #define PR_HOST_STATUS_IDLE	0
 
+#if defined(CONFIG_X86) && defined(CONFIG_AS_AVX512)
+
+#include <asm/fpu/api.h>
+
+static inline void copy512(void *src, void __iomem *dst)
+{
+	kernel_fpu_begin();
+
+	asm volatile("vmovdqu64 (%0), %%zmm0;"
+		     "vmovntdq %%zmm0, (%1);"
+		     :
+		     : "r"(src), "r"(dst));
+
+	kernel_fpu_end();
+}
+#else
+static inline void copy512(void *src, void __iomem *dst)
+{
+	WARN_ON_ONCE(1);
+}
+#endif
+
 struct fme_mgr_priv {
 	void __iomem *ioaddr;
+	unsigned int pr_datawidth;
 	u64 pr_error;
 };
 
@@ -169,7 +196,7 @@ static int fme_mgr_write(struct fpga_manager *mgr,
 	struct fme_mgr_priv *priv = mgr->priv;
 	void __iomem *fme_pr = priv->ioaddr;
 	u64 pr_ctrl, pr_status, pr_data;
-	int delay = 0, pr_credit, i = 0;
+	int ret = 0, delay = 0, pr_credit;
 
 	dev_dbg(dev, "start request\n");
 
@@ -181,9 +208,9 @@ static int fme_mgr_write(struct fpga_manager *mgr,
 
 	/*
 	 * driver can push data to PR hardware using PR_DATA register once HW
-	 * has enough pr_credit (> 1), pr_credit reduces one for every 32bit
-	 * pr data write to PR_DATA register. If pr_credit <= 1, driver needs
-	 * to wait for enough pr_credit from hardware by polling.
+	 * has enough pr_credit (> 1), pr_credit reduces one for every pr data
+	 * width write to PR_DATA register. If pr_credit <= 1, driver needs to
+	 * wait for enough pr_credit from hardware by polling.
 	 */
 	pr_status = readq(fme_pr + FME_PR_STS);
 	pr_credit = FIELD_GET(FME_PR_STS_PR_CREDIT, pr_status);
@@ -192,7 +219,8 @@ static int fme_mgr_write(struct fpga_manager *mgr,
 		while (pr_credit <= 1) {
 			if (delay++ > PR_WAIT_TIMEOUT) {
 				dev_err(dev, "PR_CREDIT timeout\n");
-				return -ETIMEDOUT;
+				ret = -ETIMEDOUT;
+				goto done;
 			}
 			udelay(1);
 
@@ -200,21 +228,32 @@ static int fme_mgr_write(struct fpga_manager *mgr,
 			pr_credit = FIELD_GET(FME_PR_STS_PR_CREDIT, pr_status);
 		}
 
-		if (count < 4) {
+		if (count < priv->pr_datawidth) {
 			dev_err(dev, "Invalid PR bitstream size\n");
 			return -EINVAL;
 		}
 
-		pr_data = 0;
-		pr_data |= FIELD_PREP(FME_PR_DATA_PR_DATA_RAW,
-				      *(((u32 *)buf) + i));
-		writeq(pr_data, fme_pr + FME_PR_DATA);
-		count -= 4;
+		switch (priv->pr_datawidth) {
+		case 4:
+			pr_data = 0;
+			pr_data |= FIELD_PREP(FME_PR_DATA_PR_DATA_RAW,
+					*((u32 *)buf));
+			writeq(pr_data, fme_pr + FME_PR_DATA);
+			break;
+		case 64:
+			copy512((void *)buf, fme_pr + FME_PR_512_DATA);
+			break;
+		default:
+			ret = -EFAULT;
+			goto done;
+		}
+		buf += priv->pr_datawidth;
+		count -= priv->pr_datawidth;
 		pr_credit--;
-		i++;
 	}
 
-	return 0;
+done:
+	return ret;
 }
 
 static int fme_mgr_write_complete(struct fpga_manager *mgr,
@@ -302,6 +341,15 @@ static int fme_mgr_probe(struct platform_device *pdev)
 			return PTR_ERR(priv->ioaddr);
 	}
 
+	/*
+	 * Only revision 2 supports 512bit datawidth for better performance,
+	 * other revisions use default 32bit datawidth.
+	 */
+	if (dfl_feature_revision(priv->ioaddr) == 2)
+		priv->pr_datawidth = 64;
+	else
+		priv->pr_datawidth = 4;
+
 	compat_id = devm_kzalloc(dev, sizeof(*compat_id), GFP_KERNEL);
 	if (!compat_id)
 		return -ENOMEM;
@@ -342,3 +390,4 @@ MODULE_DESCRIPTION("FPGA Manager for DFL FPGA Management Engine");
 MODULE_AUTHOR("Intel Corporation");
 MODULE_LICENSE("GPL v2");
 MODULE_ALIAS("platform:dfl-fme-mgr");
+MODULE_VERSION(DRV_VERSION);
