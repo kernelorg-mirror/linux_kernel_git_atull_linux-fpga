@@ -100,3 +100,59 @@ Description:	Read-only. Read this file to get the policy of temperature
 		threshold1. It only supports two value (policy):
 		    0 - AP2 state (90% throttling)
 		    1 - AP1 state (50% throttling)
+
+What:		/sys/bus/platform/devices/dfl-fme.0/power_mgmt/consumed
+Date:		March 2019
+KernelVersion:  5.2
+Contact:	Wu Hao <hao.wu@intel.com>
+Description:	Read-only. It returns current power consumed by FPGA.
+
+What:		/sys/bus/platform/devices/dfl-fme.0/power_mgmt/threshold1
+Date:		March 2019
+KernelVersion:  5.2
+Contact:	Wu Hao <hao.wu@intel.com>
+Description:	Read-Write. Read/Write this file to get/set current power
+		threshold1 in Watts.
+
+What:		/sys/bus/platform/devices/dfl-fme.0/power_mgmt/threshold2
+Date:		March 2019
+KernelVersion:  5.2
+Contact:	Wu Hao <hao.wu@intel.com>
+Description:	Read-Write. Read/Write this file to get/set current power
+		threshold2 in Watts.
+
+What:		/sys/bus/platform/devices/dfl-fme.0/power_mgmt/threshold1_status
+Date:		March 2019
+KernelVersion:  5.2
+Contact:	Wu Hao <hao.wu@intel.com>
+Description:	Read-only. It returns 1 if power consumption reaches the
+		threshold1, otherwise 0.
+
+What:		/sys/bus/platform/devices/dfl-fme.0/power_mgmt/threshold2_status
+Date:		March 2019
+KernelVersion:  5.2
+Contact:	Wu Hao <hao.wu@intel.com>
+Description:	Read-only. It returns 1 if power consumption reaches the
+		threshold2, otherwise 0.
+
+What:		/sys/bus/platform/devices/dfl-fme.0/power_mgmt/ltr
+Date:		March 2019
+KernelVersion:  5.2
+Contact:	Wu Hao <hao.wu@intel.com>
+Description:	Read-only. Read this file to get current Latency Tolerance
+		Reporting (ltr) value, it's only valid for integrated
+		solution as it blocks CPU on low power state.
+
+What:		/sys/bus/platform/devices/dfl-fme.0/power_mgmt/xeon_limit
+Date:		March 2019
+KernelVersion:  5.2
+Contact:	Wu Hao <hao.wu@intel.com>
+Description:	Read-only. Read this file to get power limit for xeon, it
+		is only valid for integrated solution.
+
+What:		/sys/bus/platform/devices/dfl-fme.0/power_mgmt/fpga_limit
+Date:		March 2019
+KernelVersion:  5.2
+Contact:	Wu Hao <hao.wu@intel.com>
+Description:	Read-only. Read this file to get power limit for fpga, it
+		is only valid for integrated solution.

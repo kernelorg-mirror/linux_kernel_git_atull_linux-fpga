@@ -415,6 +415,259 @@ static const struct dfl_feature_ops fme_thermal_mgmt_ops = {
 	.uinit = fme_thermal_mgmt_uinit,
 };
 
+#define FME_PWR_STATUS		0x8
+#define FME_LATENCY_TOLERANCE	BIT_ULL(18)
+#define PWR_CONSUMED		GENMASK_ULL(17, 0)
+
+#define FME_PWR_THRESHOLD	0x10
+#define PWR_THRESHOLD1		GENMASK_ULL(6, 0)	/* in Watts */
+#define PWR_THRESHOLD2		GENMASK_ULL(14, 8)	/* in Watts */
+#define PWR_THRESHOLD_MAX	0x7f
+#define PWR_THRESHOLD1_STATUS	BIT_ULL(16)
+#define PWR_THRESHOLD2_STATUS	BIT_ULL(17)
+
+#define FME_PWR_XEON_LIMIT	0x18
+#define XEON_PWR_LIMIT		GENMASK_ULL(14, 0)
+#define XEON_PWR_EN		BIT_ULL(15)
+#define FME_PWR_FPGA_LIMIT	0x20
+#define FPGA_PWR_LIMIT		GENMASK_ULL(14, 0)
+#define FPGA_PWR_EN		BIT_ULL(15)
+
+#define POWER_ATTR(_name, _mode, _show, _store)	\
+struct device_attribute power_attr_##_name =		\
+	__ATTR(_name, _mode, _show, _store)
+
+#define POWER_ATTR_RO(_name, _show)			\
+	POWER_ATTR(_name, 0444, _show, NULL)
+
+#define POWER_ATTR_RW(_name, _show, _store)		\
+	POWER_ATTR(_name, 0644, _show, _store)
+
+static ssize_t pwr_consumed_show(struct device *dev,
+				 struct device_attribute *attr, char *buf)
+{
+	void __iomem *base;
+	u64 v;
+
+	base = dfl_get_feature_ioaddr_by_id(dev, FME_FEATURE_ID_POWER_MGMT);
+
+	v = readq(base + FME_PWR_STATUS);
+
+	return scnprintf(buf, PAGE_SIZE, "%u\n",
+			 (unsigned int)FIELD_GET(PWR_CONSUMED, v));
+}
+static POWER_ATTR_RO(consumed, pwr_consumed_show);
+
+static ssize_t pwr_threshold1_show(struct device *dev,
+				   struct device_attribute *attr, char *buf)
+{
+	void __iomem *base;
+	u64 v;
+
+	base = dfl_get_feature_ioaddr_by_id(dev, FME_FEATURE_ID_POWER_MGMT);
+
+	v = readq(base + FME_PWR_THRESHOLD);
+
+	return scnprintf(buf, PAGE_SIZE, "%u\n",
+			 (unsigned int)FIELD_GET(PWR_THRESHOLD1, v));
+}
+
+static ssize_t pwr_threshold1_store(struct device *dev,
+				    struct device_attribute *attr,
+				    const char *buf, size_t count)
+{
+	struct dfl_feature_platform_data *pdata = dev_get_platdata(dev);
+	void __iomem *base;
+	u8 threshold;
+	int ret;
+	u64 v;
+
+	ret = kstrtou8(buf, 0, &threshold);
+	if (ret)
+		return ret;
+
+	if (threshold > PWR_THRESHOLD_MAX)
+		return -EINVAL;
+
+	base = dfl_get_feature_ioaddr_by_id(dev, FME_FEATURE_ID_POWER_MGMT);
+
+	mutex_lock(&pdata->lock);
+	v = readq(base + FME_PWR_THRESHOLD);
+	v &= ~PWR_THRESHOLD1;
+	v |= FIELD_PREP(PWR_THRESHOLD1, threshold);
+	writeq(v, base + FME_PWR_THRESHOLD);
+	mutex_unlock(&pdata->lock);
+
+	return count;
+}
+static POWER_ATTR_RW(threshold1, pwr_threshold1_show, pwr_threshold1_store);
+
+static ssize_t pwr_threshold2_show(struct device *dev,
+				   struct device_attribute *attr, char *buf)
+{
+	void __iomem *base;
+	u64 v;
+
+	base = dfl_get_feature_ioaddr_by_id(dev, FME_FEATURE_ID_POWER_MGMT);
+
+	v = readq(base + FME_PWR_THRESHOLD);
+
+	return scnprintf(buf, PAGE_SIZE, "%u\n",
+			 (unsigned int)FIELD_GET(PWR_THRESHOLD2, v));
+}
+
+static ssize_t pwr_threshold2_store(struct device *dev,
+				    struct device_attribute *attr,
+				    const char *buf, size_t count)
+{
+	struct dfl_feature_platform_data *pdata = dev_get_platdata(dev);
+	void __iomem *base;
+	u8 threshold;
+	int ret;
+	u64 v;
+
+	ret = kstrtou8(buf, 0, &threshold);
+	if (ret)
+		return ret;
+
+	if (threshold > PWR_THRESHOLD_MAX)
+		return -EINVAL;
+
+	base = dfl_get_feature_ioaddr_by_id(dev, FME_FEATURE_ID_POWER_MGMT);
+
+	mutex_lock(&pdata->lock);
+	v = readq(base + FME_PWR_THRESHOLD);
+	v &= ~PWR_THRESHOLD2;
+	v |= FIELD_PREP(PWR_THRESHOLD2, threshold);
+	writeq(v, base + FME_PWR_THRESHOLD);
+	mutex_unlock(&pdata->lock);
+
+	return count;
+}
+static POWER_ATTR_RW(threshold2, pwr_threshold2_show, pwr_threshold2_store);
+
+static ssize_t pwr_threshold1_status_show(struct device *dev,
+					  struct device_attribute *attr,
+					  char *buf)
+{
+	void __iomem *base;
+	u64 v;
+
+	base = dfl_get_feature_ioaddr_by_id(dev, FME_FEATURE_ID_POWER_MGMT);
+
+	v = readq(base + FME_PWR_THRESHOLD);
+
+	return scnprintf(buf, PAGE_SIZE, "%u\n",
+			 (unsigned int)FIELD_GET(PWR_THRESHOLD1_STATUS, v));
+}
+static POWER_ATTR_RO(threshold1_status, pwr_threshold1_status_show);
+
+static ssize_t pwr_threshold2_status_show(struct device *dev,
+					  struct device_attribute *attr,
+					  char *buf)
+{
+	void __iomem *base;
+	u64 v;
+
+	base = dfl_get_feature_ioaddr_by_id(dev, FME_FEATURE_ID_POWER_MGMT);
+
+	v = readq(base + FME_PWR_THRESHOLD);
+
+	return scnprintf(buf, PAGE_SIZE, "%u\n",
+			 (unsigned int)FIELD_GET(PWR_THRESHOLD2_STATUS, v));
+}
+static POWER_ATTR_RO(threshold2_status, pwr_threshold2_status_show);
+
+static ssize_t ltr_show(struct device *dev,
+			struct device_attribute *attr, char *buf)
+{
+	void __iomem *base;
+	u64 v;
+
+	base = dfl_get_feature_ioaddr_by_id(dev, FME_FEATURE_ID_POWER_MGMT);
+
+	v = readq(base + FME_PWR_STATUS);
+
+	return scnprintf(buf, PAGE_SIZE, "%u\n",
+			 (unsigned int)FIELD_GET(FME_LATENCY_TOLERANCE, v));
+}
+static POWER_ATTR_RO(ltr, ltr_show);
+
+static ssize_t xeon_limit_show(struct device *dev,
+			       struct device_attribute *attr, char *buf)
+{
+	void __iomem *base;
+	u16 xeon_limit = 0;
+	u64 v;
+
+	base = dfl_get_feature_ioaddr_by_id(dev, FME_FEATURE_ID_POWER_MGMT);
+
+	v = readq(base + FME_PWR_XEON_LIMIT);
+
+	if (FIELD_GET(XEON_PWR_EN, v))
+		xeon_limit = FIELD_GET(XEON_PWR_LIMIT, v);
+
+	return scnprintf(buf, PAGE_SIZE, "%u\n", xeon_limit);
+}
+static POWER_ATTR_RO(xeon_limit, xeon_limit_show);
+
+static ssize_t fpga_limit_show(struct device *dev,
+			       struct device_attribute *attr, char *buf)
+{
+	void __iomem *base;
+	u16 fpga_limit = 0;
+	u64 v;
+
+	base = dfl_get_feature_ioaddr_by_id(dev, FME_FEATURE_ID_POWER_MGMT);
+
+	v = readq(base + FME_PWR_FPGA_LIMIT);
+
+	if (FIELD_GET(FPGA_PWR_EN, v))
+		fpga_limit = FIELD_GET(FPGA_PWR_LIMIT, v);
+
+	return scnprintf(buf, PAGE_SIZE, "%u\n", fpga_limit);
+}
+static POWER_ATTR_RO(fpga_limit, fpga_limit_show);
+
+static struct attribute *power_mgmt_attrs[] = {
+	&power_attr_consumed.attr,
+	&power_attr_threshold1.attr,
+	&power_attr_threshold2.attr,
+	&power_attr_threshold1_status.attr,
+	&power_attr_threshold2_status.attr,
+	&power_attr_xeon_limit.attr,
+	&power_attr_fpga_limit.attr,
+	&power_attr_ltr.attr,
+	NULL,
+};
+
+static struct attribute_group power_mgmt_attr_group = {
+	.attrs	= power_mgmt_attrs,
+	.name	= "power_mgmt",
+};
+
+static int fme_power_mgmt_init(struct platform_device *pdev,
+			       struct dfl_feature *feature)
+{
+	return sysfs_create_group(&pdev->dev.kobj, &power_mgmt_attr_group);
+}
+
+static void fme_power_mgmt_uinit(struct platform_device *pdev,
+				 struct dfl_feature *feature)
+{
+	sysfs_remove_group(&pdev->dev.kobj, &power_mgmt_attr_group);
+}
+
+static const struct dfl_feature_id fme_power_mgmt_id_table[] = {
+	{.id = FME_FEATURE_ID_POWER_MGMT,},
+	{0,}
+};
+
+static const struct dfl_feature_ops fme_power_mgmt_ops = {
+	.init = fme_power_mgmt_init,
+	.uinit = fme_power_mgmt_uinit,
+};
+
 static struct dfl_feature_driver fme_feature_drvs[] = {
 	{
 		.id_table = fme_hdr_id_table,
@@ -427,6 +680,10 @@ static struct dfl_feature_driver fme_feature_drvs[] = {
 	{
 		.id_table = fme_thermal_mgmt_id_table,
 		.ops = &fme_thermal_mgmt_ops,
+	},
+	{
+		.id_table = fme_power_mgmt_id_table,
+		.ops = &fme_power_mgmt_ops,
 	},
 	{
 		.ops = NULL,
