@@ -176,4 +176,36 @@ struct dfl_fpga_fme_port_pr {
 
 #define DFL_FPGA_FME_PORT_PR	_IO(DFL_FPGA_MAGIC, DFL_FME_BASE + 0)
 
+/**
+ * DFL_FPGA_FME_PORT_RELEASE - _IOW(DFL_FPGA_MAGIC, DFL_FME_BASE + 1,
+ *					struct dfl_fpga_fme_port_release)
+ *
+ * Driver releases the port per Port ID provided by caller.
+ * Return: 0 on success, -errno on failure.
+ */
+struct dfl_fpga_fme_port_release {
+	/* Input */
+	__u32 argsz;		/* Structure length */
+	__u32 flags;		/* Zero for now */
+	__u32 port_id;
+};
+
+#define DFL_FPGA_FME_PORT_RELEASE	_IO(DFL_FPGA_MAGIC, DFL_FME_BASE + 1)
+
+/**
+ * DFL_FPGA_FME_PORT_ASSIGN - _IOW(DFL_FPGA_MAGIC, DFL_FME_BASE + 2,
+ *					struct dfl_fpga_fme_port_assign)
+ *
+ * Driver assigns the port back per Port ID provided by caller.
+ * Return: 0 on success, -errno on failure.
+ */
+struct dfl_fpga_fme_port_assign {
+	/* Input */
+	__u32 argsz;		/* Structure length */
+	__u32 flags;		/* Zero for now */
+	__u32 port_id;
+};
+
+#define DFL_FPGA_FME_PORT_ASSIGN	_IO(DFL_FPGA_MAGIC, DFL_FME_BASE + 2)
+
 #endif /* _UAPI_LINUX_FPGA_DFL_H */

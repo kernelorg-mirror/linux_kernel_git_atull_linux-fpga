@@ -16,6 +16,7 @@
 
 #include <linux/kernel.h>
 #include <linux/module.h>
+#include <linux/uaccess.h>
 #include <linux/fpga-dfl.h>
 
 #include "dfl.h"
@@ -105,9 +106,62 @@ static void fme_hdr_uinit(struct platform_device *pdev,
 	sysfs_remove_files(&pdev->dev.kobj, fme_hdr_attrs);
 }
 
+static long fme_hdr_ioctl_release_port(struct dfl_feature_platform_data *pdata,
+				       void __user *arg)
+{
+	struct dfl_fpga_cdev *cdev = pdata->dfl_cdev;
+	struct dfl_fpga_fme_port_release release;
+	unsigned long minsz;
+
+	minsz = offsetofend(struct dfl_fpga_fme_port_release, port_id);
+
+	if (copy_from_user(&release, arg, minsz))
+		return -EFAULT;
+
+	if (release.argsz < minsz || release.flags)
+		return -EINVAL;
+
+	return dfl_fpga_cdev_config_port(cdev, release.port_id, true);
+}
+
+static long fme_hdr_ioctl_assign_port(struct dfl_feature_platform_data *pdata,
+				      void __user *arg)
+{
+	struct dfl_fpga_cdev *cdev = pdata->dfl_cdev;
+	struct dfl_fpga_fme_port_assign assign;
+	unsigned long minsz;
+
+	minsz = offsetofend(struct dfl_fpga_fme_port_assign, port_id);
+
+	if (copy_from_user(&assign, arg, minsz))
+		return -EFAULT;
+
+	if (assign.argsz < minsz || assign.flags)
+		return -EINVAL;
+
+	return dfl_fpga_cdev_config_port(cdev, assign.port_id, false);
+}
+
+static long fme_hdr_ioctl(struct platform_device *pdev,
+			  struct dfl_feature *feature,
+			  unsigned int cmd, unsigned long arg)
+{
+	struct dfl_feature_platform_data *pdata = dev_get_platdata(&pdev->dev);
+
+	switch (cmd) {
+	case DFL_FPGA_FME_PORT_RELEASE:
+		return fme_hdr_ioctl_release_port(pdata, (void __user *)arg);
+	case DFL_FPGA_FME_PORT_ASSIGN:
+		return fme_hdr_ioctl_assign_port(pdata, (void __user *)arg);
+	}
+
+	return -ENODEV;
+}
+
 static const struct dfl_feature_ops fme_hdr_ops = {
 	.init = fme_hdr_init,
 	.uinit = fme_hdr_uinit,
+	.ioctl = fme_hdr_ioctl,
 };
 
 static struct dfl_feature_driver fme_feature_drvs[] = {
