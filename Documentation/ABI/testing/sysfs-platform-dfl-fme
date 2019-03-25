@@ -214,3 +214,89 @@ KernelVersion:  5.2
 Contact:	Wu Hao <hao.wu@intel.com>
 Description:	Read-Write. Write this file to inject errors for testing
 		purpose. Read this file to check errors injected.
+
+What:		/sys/bus/platform/devices/dfl-fme.0/perf/clock
+Date:		March 2019
+KernelVersion:  5.2
+Contact:	Wu Hao <hao.wu@intel.com>
+Description:	Read-Only. Read for Accelerator Function Unit (AFU) clock
+		counter.
+
+What:		/sys/bus/platform/devices/dfl-fme.0/perf/cache/freeze
+Date:		March 2019
+KernelVersion:  5.2
+Contact:	Wu Hao <hao.wu@intel.com>
+Description:	Read-Write. Read and Write this file to freeze or unfreeze
+		the 'cache' category performance counters.
+
+What:		/sys/bus/platform/devices/dfl-fme.0/perf/cache/<counter>
+Date:		March 2019
+KernelVersion:  5.2
+Contact:	Wu Hao <hao.wu@intel.com>
+Description:	Read-Only. Read 'cache' category performance counters:
+		read_hit, read_miss, write_hit, write_miss, hold_request,
+		data_write_port_contention, tag_write_port_contention,
+		tx_req_stall, rx_req_stall and rx_eviction.
+
+What:		/sys/bus/platform/devices/dfl-fme.0/perf/iommu/freeze
+Date:		March 2019
+KernelVersion:  5.2
+Contact:	Wu Hao <hao.wu@intel.com>
+Description:	Read-Write. Read and Write this file to freeze or unfreeze
+		the 'iommu' category performance counters.
+
+What:		/sys/bus/platform/devices/dfl-fme.0/perf/iommu/<sip_counter>
+Date:		March 2019
+KernelVersion:  5.2
+Contact:	Wu Hao <hao.wu@intel.com>
+Description:	Read-Only. Read 'iommu' category 'sip' sub category
+		performance counters: iotlb_4k_hit, iotlb_2m_hit,
+		iotlb_1g_hit, slpwc_l3_hit, slpwc_l4_hit, rcc_hit,
+		rcc_miss, iotlb_4k_miss, iotlb_2m_miss, iotlb_1g_miss,
+		slpwc_l3_miss and slpwc_l4_miss.
+
+What:		/sys/bus/platform/devices/dfl-fme.0/perf/iommu/afu0/<counter>
+Date:		March 2019
+KernelVersion:  5.2
+Contact:	Wu Hao <hao.wu@intel.com>
+Description:	Read-Only. Read 'iommu' category 'afuX' sub category
+		performance counters: read_transaction, write_transaction,
+		devtlb_read_hit, devtlb_write_hit, devtlb_4k_fill,
+		devtlb_2m_fill and devtlb_1g_fill.
+
+What:		/sys/bus/platform/devices/dfl-fme.0/perf/fabric/freeze
+Date:		March 2019
+KernelVersion:  5.2
+Contact:	Wu Hao <hao.wu@intel.com>
+Description:	Read-Write. Read and Write this file to freeze or unfreeze
+		the 'fabric' category performance counters.
+
+What:		/sys/bus/platform/devices/dfl-fme.0/perf/fabric/<counter>
+Date:		March 2019
+KernelVersion:  5.2
+Contact:	Wu Hao <hao.wu@intel.com>
+Description:	Read-Only. Read 'fabric' category performance counters:
+		pcie0_read, pcie0_write, pcie1_read, pcie1_write,
+		upi_read, upi_write and mmio_read.
+
+What:		/sys/bus/platform/devices/dfl-fme.0/perf/fabric/enable
+Date:		March 2019
+KernelVersion:  5.2
+Contact:	Wu Hao <hao.wu@intel.com>
+Description:	Read-Write. Read and write this file to enable device
+		level fabric counters sysfs interfaces in the same folder.
+
+What:		/sys/bus/platform/devices/dfl-fme.0/perf/fabric/port0/<counter>
+Date:		March 2019
+KernelVersion:  5.2
+Contact:	Wu Hao <hao.wu@intel.com>
+Description:	Read-Only. Read 'fabric' category "portX" sub category
+		performance counters: pcie0_read, pcie0_write, pcie1_read,
+		pcie1_write, upi_read, upi_write and mmio_read.
+
+What:		/sys/bus/platform/devices/dfl-fme.0/perf/fabric/port0/enable
+Date:		March 2019
+KernelVersion:  5.2
+Contact:	Wu Hao <hao.wu@intel.com>
+Description:	Read-Write. Read and write this file to enable port level
+		fabric counters sysfs interfaces in the same folder.

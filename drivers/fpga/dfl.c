@@ -507,6 +507,7 @@ static int build_info_commit_dev(struct build_feature_devs_info *binfo)
 		struct dfl_feature *feature = &pdata->features[index];
 
 		/* save resource information for each feature */
+		feature->pdev = fdev;
 		feature->id = finfo->fid;
 		feature->resource_index = index;
 		feature->ioaddr = finfo->ioaddr;

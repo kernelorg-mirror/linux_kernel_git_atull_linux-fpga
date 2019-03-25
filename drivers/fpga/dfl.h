@@ -191,6 +191,7 @@ struct dfl_feature_driver {
 /**
  * struct dfl_feature - sub feature of the feature devices
  *
+ * @pdev: parent platform device.
  * @id: sub feature id.
  * @resource_index: each sub feature has one mmio resource for its registers.
  *		    this index is used to find its mmio resource from the
@@ -200,6 +201,7 @@ struct dfl_feature_driver {
  * @priv: priv data of this feature.
  */
 struct dfl_feature {
+	struct platform_device *pdev;
 	u64 id;
 	int resource_index;
 	void __iomem *ioaddr;
