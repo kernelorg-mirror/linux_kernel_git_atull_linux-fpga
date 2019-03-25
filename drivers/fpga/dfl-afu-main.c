@@ -528,6 +528,10 @@ static struct dfl_feature_driver port_feature_drvs[] = {
 		.ops = &port_afu_ops,
 	},
 	{
+		.id_table = port_err_id_table,
+		.ops = &port_err_ops,
+	},
+	{
 		.ops = NULL,
 	}
 };
